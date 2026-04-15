@@ -78,39 +78,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppStyle.circleDecoration,
-                child: const Icon(Icons.person_add_rounded, size: 60, color: AppColors.primary),
+                decoration: AppStyle.circleDecoration.copyWith(
+                  color: AppColors.primary,
+                ),
+                child: const Icon(Icons.person_add_rounded, size: 60, color: Colors.white),
               ),
               const SizedBox(height: 30),
-              Text("TẠO TÀI KHOẢN", style: AppStyle.heading.copyWith(fontSize: 26)),
-              const SizedBox(height: 10),
-              Text("Tham gia hệ thống quản lý Cafe Pro", style: AppStyle.subHeading),
-              const SizedBox(height: 50),
-              _buildTextField(userCtrl, "Tên đăng nhập mới", Icons.account_circle_outlined),
+              Text("REGISTER", style: AppStyle.heading.copyWith(fontSize: 40)),
+              const SizedBox(height: 8),
+              Text("Join the Cafe Pro community", style: AppStyle.subHeading),
+              const SizedBox(height: 40),
+              _buildTextField(userCtrl, "New Username", Icons.account_circle_outlined),
               const SizedBox(height: 20),
-              _buildTextField(passCtrl, "Mật khẩu bảo mật", Icons.vpn_key_outlined, isPass: true),
+              _buildTextField(passCtrl, "Secure Password", Icons.vpn_key_outlined, isPass: true),
               const SizedBox(height: 40),
               _isLoading
                   ? const CupertinoActivityIndicator(color: AppColors.primary)
-                  : SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          elevation: 5,
-                          shadowColor: AppColors.primary.withOpacity(0.3),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  : GestureDetector(
+                      onTap: _handleRegister,
+                      child: Container(
+                        width: double.infinity,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.textPrimary, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.textPrimary,
+                              offset: Offset(4, 4),
+                              blurRadius: 0,
+                            ),
+                          ],
                         ),
-                        onPressed: _handleRegister,
-                        child: const Text("ĐĂNG KÝ NGAY", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        child: Center(
+                          child: Text(
+                            "CREATE ACCOUNT",
+                            style: AppStyle.buttonText.copyWith(letterSpacing: 2),
+                          ),
+                        ),
                       ),
                     ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("Đã có tài khoản? Quay lại đăng nhập", style: TextStyle(color: AppColors.textSecondary)),
+                child: Text(
+                  "Already have an account? Sign In", 
+                  style: AppStyle.body.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  )
+                ),
               ),
             ],
           ),
@@ -121,19 +140,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildTextField(TextEditingController ctrl, String hint, IconData icon, {bool isPass = false}) {
     return Container(
-      decoration: AppStyle.cardDecoration,
+      decoration: AppStyle.cardDecoration.copyWith(
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.textPrimary,
+            offset: Offset(2, 2),
+            blurRadius: 0,
+          ),
+        ],
+      ),
       child: TextField(
         controller: ctrl,
         obscureText: isPass,
-        style: const TextStyle(fontSize: 15),
+        style: AppStyle.body.copyWith(fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-          prefixIcon: Icon(icon, color: AppColors.primary),
+          hintStyle: AppStyle.body.copyWith(color: AppColors.textSecondary),
+          prefixIcon: Icon(icon, color: AppColors.textPrimary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
         ),
       ),
     );
   }
-}
+}

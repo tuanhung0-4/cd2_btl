@@ -60,7 +60,7 @@ class _ProductScreenState extends State<ProductScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black.withOpacity(0.05), borderRadius: BorderRadius.circular(10))),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black.withAlpha(12), borderRadius: BorderRadius.circular(10))),
                 const SizedBox(height: 25),
                 Text("THÊM MÓN MỚI", style: AppStyle.heading),
                 const SizedBox(height: 30),
@@ -75,7 +75,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.background,
                       borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                      border: Border.all(color: AppColors.primary.withAlpha(25)),
                     ),
                     child: image == null
                         ? const Icon(CupertinoIcons.camera_fill, color: AppColors.primary, size: 40)
@@ -97,7 +97,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
-                      decoration: AppStyle.cardDecoration.copyWith(color: AppColors.background.withOpacity(0.5)),
+                      decoration: AppStyle.cardDecoration.copyWith(color: AppColors.background.withAlpha(128)),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: category,
@@ -165,7 +165,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Text(label, style: AppStyle.subHeading),
         const SizedBox(height: 10),
         Container(
-          decoration: AppStyle.cardDecoration.copyWith(color: AppColors.background.withOpacity(0.5)),
+          decoration: AppStyle.cardDecoration.copyWith(color: AppColors.background.withAlpha(128)),
           child: CupertinoTextField(
             placeholder: hint,
             placeholderStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
@@ -192,28 +192,35 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("THỰC ĐƠN", style: AppStyle.heading),
-            Text("Quản lý danh mục món ăn", style: AppStyle.subHeading),
+            Text("THỰC ĐƠN", style: AppStyle.heading.copyWith(fontSize: 28)),
+            Text("Quản lý danh mục món ăn và đồ uống", style: AppStyle.subHeading),
           ],
         ),
         actions: [
-          // Replace CupertinoButton with a tappable Container to keep the '+' centered
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 20),
             child: GestureDetector(
               onTap: _showAddProductSheet,
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.1),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.textPrimary, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.textPrimary,
+                      offset: Offset(3, 3),
+                      blurRadius: 0,
+                    ),
+                  ],
                 ),
-                child: const Icon(CupertinoIcons.add, color: AppColors.secondary, size: 20),
+                child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
               ),
             ),
           ),
@@ -223,29 +230,41 @@ class _ProductScreenState extends State<ProductScreen> {
         children: [
           // Category Filter Chips
           Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            color: Colors.white,
+            height: 70,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            color: AppColors.background,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               children: ['Tất cả', ...categories].map((cat) {
                 bool isSelected = selectedCategoryFilter == cat;
                 return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: ChoiceChip(
-                    label: Text(cat, style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold
-                    )),
-                    selected: isSelected,
-                    selectedColor: AppColors.secondary,
-                    backgroundColor: AppColors.background,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    onSelected: (bool selected) {
-                      setState(() => selectedCategoryFilter = cat);
-                    },
+                  padding: const EdgeInsets.only(right: 12),
+                  child: GestureDetector(
+                    onTap: () => setState(() => selectedCategoryFilter = cat),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.secondary : Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: AppColors.textPrimary, width: 2),
+                        boxShadow: isSelected ? null : const [
+                          BoxShadow(
+                            color: AppColors.textPrimary,
+                            offset: Offset(2, 2),
+                            blurRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(cat, style: AppStyle.body.copyWith(
+                          color: isSelected ? Colors.white : AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        )),
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -253,44 +272,75 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           Expanded(
             child: filteredProducts.isEmpty
-                ? const Center(child: Text("Không tìm thấy món ăn nào", style: TextStyle(color: AppColors.textSecondary)))
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.flatware_rounded, size: 80, color: AppColors.textPrimary.withAlpha(50)),
+                        const SizedBox(height: 16),
+                        Text("Chưa có món ăn nào được thêm", style: AppStyle.body.copyWith(color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  )
                 : ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     itemCount: filteredProducts.length,
                     itemBuilder: (context, i) {
                       var p = filteredProducts[i];
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 15),
-                        padding: const EdgeInsets.all(12),
-                        decoration: AppStyle.cardDecoration,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(16),
+                        decoration: AppStyle.cardDecoration.copyWith(
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.textPrimary,
+                              offset: Offset(4, 4),
+                              blurRadius: 0,
+                            ),
+                          ],
+                        ),
                         child: Row(
                           children: [
                             Container(
-                              width: 80, height: 80,
+                              width: 90, height: 90,
                               decoration: BoxDecoration(
                                 color: AppColors.background,
-                                borderRadius: BorderRadius.circular(15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.textPrimary, width: 2),
                               ),
                               child: p['imagePath'] != null && p['imagePath'].isNotEmpty
-                                  ? ClipRRect(borderRadius: BorderRadius.circular(15), child: Image.file(File(p['imagePath']), fit: BoxFit.cover))
-                                  : const Icon(Icons.fastfood_rounded, color: AppColors.secondary, size: 30),
+                                  ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(p['imagePath']), fit: BoxFit.cover))
+                                  : const Icon(Icons.fastfood_rounded, color: AppColors.textPrimary, size: 32),
                             ),
-                            const SizedBox(width: 15),
+                            const SizedBox(width: 20),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(p['name'], style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
-                                  Text(p['category'] ?? "Khác", style: TextStyle(color: AppColors.secondary.withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 4),
-                                  Text(p['description'] ?? "Không có mô tả", maxLines: 1, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                                  const SizedBox(height: 6),
-                                  Text("${NumberFormat("#,###").format(p['price'])}đ", style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w900, fontSize: 16)),
+                                  Text(p['name'].toUpperCase(), style: AppStyle.heading.copyWith(fontSize: 18)),
+                                  const SizedBox(height: 2),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accent,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: AppColors.textPrimary, width: 1),
+                                    ),
+                                    child: Text(
+                                      p['category'] ?? "Khác", 
+                                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 8, fontWeight: FontWeight.w900)
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "${NumberFormat("#,###").format(p['price'])}đ", 
+                                    style: AppStyle.heading.copyWith(color: AppColors.primary, fontSize: 18)
+                                  ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(CupertinoIcons.delete, color: AppColors.danger, size: 20),
+                              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 24),
                               onPressed: () async {
                                 await CafeDBHelper.deleteProduct(p['id']);
                                 _load();

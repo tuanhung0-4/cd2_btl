@@ -79,7 +79,7 @@ class _OrderManagerSheetState extends State<OrderManagerSheet> {
                     decoration: BoxDecoration(color: Colors.black.withAlpha((0.05 * 255).round()), borderRadius: BorderRadius.circular(10)),
                   ),
           const SizedBox(height: 15),
-          Text("GỌI MÓN: ${widget.table['name']}", style: AppStyle.heading),
+          Text("ĐẶT MÓN: ${widget.table['name']}", style: AppStyle.heading),
           const SizedBox(height: 15),
           
           // Category Selector (Tabs)

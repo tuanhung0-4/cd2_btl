@@ -225,43 +225,58 @@ class _TableScreenState extends State<TableScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("SƠ ĐỒ BÀN", style: AppStyle.heading),
-            Text("Quản lý trạng thái phục vụ", style: AppStyle.subHeading),
+            Text("DS BÀN", style: AppStyle.heading.copyWith(fontSize: 28)),
+            Text("Quản lý phục vụ thời gian thực", style: AppStyle.subHeading),
           ],
         ),
         actions: [
-          // Use a simple tappable Container instead of CupertinoButton to avoid extra
-          // internal padding that caused the + icon to appear misaligned.
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 20),
             child: GestureDetector(
               onTap: _addTable,
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.textPrimary, width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.textPrimary,
+                      offset: Offset(3, 3),
+                      blurRadius: 0,
+                    ),
+                  ],
                 ),
-                child: const Icon(CupertinoIcons.add, color: AppColors.primary, size: 20),
+                child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
               ),
             ),
           ),
         ],
       ),
       body: tables.isEmpty
-          ? const Center(child: Text("Chưa có bàn nào được thiết lập", style: TextStyle(color: AppColors.textSecondary)))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.coffee_maker_rounded, size: 80, color: AppColors.textPrimary.withAlpha(50)),
+                  const SizedBox(height: 16),
+                  Text("Chưa có bàn nào được thiết lập", style: AppStyle.body.copyWith(color: AppColors.textSecondary)),
+                ],
+              ),
+            )
           : GridView.builder(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, 
-                crossAxisSpacing: 15, 
-                mainAxisSpacing: 15, 
+                crossAxisSpacing: 20, 
+                mainAxisSpacing: 20, 
                 childAspectRatio: 0.85
               ),
               itemCount: tables.length,
@@ -274,7 +289,14 @@ class _TableScreenState extends State<TableScreen> {
                   onTap: () => _showTableOptions(table),
                   child: Container(
                     decoration: AppStyle.cardDecoration.copyWith(
-                      border: isBusy ? Border.all(color: AppColors.primary.withOpacity(0.3), width: 2) : null,
+                      color: isBusy ? AppColors.primary : Colors.white,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppColors.textPrimary,
+                          offset: Offset(4, 4),
+                          blurRadius: 0,
+                        ),
+                      ],
                     ),
                     child: Stack(
                       children: [
@@ -282,41 +304,48 @@ class _TableScreenState extends State<TableScreen> {
                           Positioned(
                             top: 12, right: 12,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
+                                color: AppColors.secondary,
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white, width: 2),
                               ),
                               child: Text(
                                 _getDuration(table['openedAt']), 
-                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
                               ),
                             ),
                           ),
                         Padding(
-                          padding: const EdgeInsets.all(15.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Icon(
                                 isBusy ? Icons.person_rounded : Icons.table_restaurant_outlined, 
-                                size: 40, 
-                                color: isBusy ? AppColors.primary : AppColors.textSecondary.withOpacity(0.3)
+                                size: 48, 
+                                color: isBusy ? Colors.white : AppColors.textPrimary
                               ),
-                              const SizedBox(height: 15),
-                              Text(table['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
+                              const Spacer(),
+                              Text(
+                                table['name'].toUpperCase(), 
+                                style: AppStyle.heading.copyWith(
+                                  fontSize: 20, 
+                                  color: isBusy ? Colors.white : AppColors.textPrimary
+                                )
+                              ),
+                              const SizedBox(height: 4),
                               if (isBusy) ...[
-                                const SizedBox(height: 10),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    _buildSmallInfo(CupertinoIcons.person_fill, "${table['guestCount']}", AppColors.primary),
-                                    const SizedBox(width: 12),
-                                    _buildSmallInfo(CupertinoIcons.cart_fill, "$itemCount", AppColors.secondary),
+                                    _buildSmallInfo(Icons.people_alt_rounded, "${table['guestCount']}", Colors.white),
+                                    const SizedBox(width: 8),
+                                    _buildSmallInfo(Icons.shopping_bag_rounded, "$itemCount", Colors.white),
                                   ],
                                 ),
                               ] else 
-                                Text("TRỐNG", style: AppStyle.subHeading.copyWith(fontSize: 10, color: AppColors.textSecondary.withOpacity(0.5))),
+                                Text("SẴN SÀNG", style: AppStyle.subHeading.copyWith(fontSize: 10, color: AppColors.textSecondary)),
                             ],
                           ),
                         ),
@@ -331,18 +360,20 @@ class _TableScreenState extends State<TableScreen> {
 
   Widget _buildSmallInfo(IconData icon, String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
+        color: color.withAlpha(40),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withAlpha(80), width: 1),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: color),
+          Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(text, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold)),
+          Text(text, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
-}
+}

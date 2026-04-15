@@ -59,39 +59,58 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: AppStyle.circleDecoration, // Dùng decoration riêng cho hình tròn
-                child: const Icon(Icons.coffee_rounded, size: 60, color: AppColors.primary),
+                decoration: AppStyle.circleDecoration.copyWith(
+                  color: AppColors.primary,
+                ),
+                child: const Icon(Icons.coffee_rounded, size: 60, color: Colors.white),
               ),
               const SizedBox(height: 30),
-              Text("CAFE MANAGER", style: AppStyle.heading.copyWith(fontSize: 28)),
-              const SizedBox(height: 10),
-              Text("Hệ thống quản lý chuyên nghiệp", style: AppStyle.subHeading),
-              const SizedBox(height: 50),
-              _buildTextField(userCtrl, "Tên đăng nhập", Icons.person_outline),
+              Text("LOGIN", style: AppStyle.heading.copyWith(fontSize: 40)),
+              const SizedBox(height: 8),
+              Text("Enter your credentials to continue", style: AppStyle.subHeading),
+              const SizedBox(height: 40),
+              _buildTextField(userCtrl, "Username", Icons.person_outline),
               const SizedBox(height: 20),
-              _buildTextField(passCtrl, "Mật khẩu", Icons.lock_outline, isPass: true),
+              _buildTextField(passCtrl, "Password", Icons.lock_outline, isPass: true),
               const SizedBox(height: 40),
               _isLoading
                   ? const CupertinoActivityIndicator(color: AppColors.primary)
-                  : SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shadowColor: AppColors.primary.withOpacity(0.3),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  : GestureDetector(
+                      onTap: _handleLogin,
+                      child: Container(
+                        width: double.infinity,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.textPrimary, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.textPrimary,
+                              offset: Offset(4, 4),
+                              blurRadius: 0,
+                            ),
+                          ],
                         ),
-                        onPressed: _handleLogin,
-                        child: const Text("ĐĂNG NHẬP", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        child: Center(
+                          child: Text(
+                            "SIGN IN",
+                            style: AppStyle.buttonText.copyWith(letterSpacing: 2),
+                          ),
+                        ),
                       ),
                     ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               TextButton(
                 onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RegisterScreen())),
-                child: const Text("Chưa có tài khoản? Đăng ký ngay", style: TextStyle(color: AppColors.primary)),
+                child: Text(
+                  "Don't have an account? Sign Up", 
+                  style: AppStyle.body.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  )
+                ),
               ),
             ],
           ),
@@ -102,19 +121,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildTextField(TextEditingController ctrl, String hint, IconData icon, {bool isPass = false}) {
     return Container(
-      decoration: AppStyle.cardDecoration,
+      decoration: AppStyle.cardDecoration.copyWith(
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.textPrimary,
+            offset: Offset(2, 2),
+            blurRadius: 0,
+          ),
+        ],
+      ),
       child: TextField(
         controller: ctrl,
         obscureText: isPass,
-        style: const TextStyle(fontSize: 15),
+        style: AppStyle.body.copyWith(fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-          prefixIcon: Icon(icon, color: AppColors.primary),
+          hintStyle: AppStyle.body.copyWith(color: AppColors.textSecondary),
+          prefixIcon: Icon(icon, color: AppColors.textPrimary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
         ),
       ),
     );
   }
-}
+}

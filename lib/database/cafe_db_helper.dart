@@ -205,4 +205,31 @@ class CafeDBHelper {
 
     return filled;
   }
+
+  static Future<List<Map<String, dynamic>>> getOrdersForThisWeek(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    // Monday is start of week
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    String startIso = "${startOfWeek.year}-${startOfWeek.month.toString().padLeft(2, '0')}-${startOfWeek.day.toString().padLeft(2, '0')} 00:00:00";
+
+    var res = await db.rawQuery('''
+      SELECT DATE(paidAt) as day, COUNT(*) as count 
+      FROM bills 
+      WHERE userId = ? AND status = 'Paid' AND paidAt >= ? 
+      GROUP BY DATE(paidAt)
+    ''', [userId, startIso]);
+
+    List<Map<String, dynamic>> filled = [];
+    for (int i = 0; i < 7; i++) {
+      DateTime d = startOfWeek.add(Duration(days: i));
+      String key = "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+      var match = res.firstWhere((r) => r['day'] == key, orElse: () => {});
+      filled.add({
+        'day': key,
+        'count': match.isEmpty ? 0 : (match['count'] as num).toInt(),
+      });
+    }
+    return filled;
+  }
 }
