@@ -35,8 +35,7 @@
 - `lib/utils/` - Style, màu sắc, font, tiện ích chung
 - `lib/database/` - Xử lý database (SQLite)
 
-## Đóng góp
-- Fork, tạo pull request hoặc liên hệ tác giả để đóng góp ý tưởng, code, UI/UX.
+
 
 ## Bản quyền
 - Dự án mã nguồn mở, sử dụng cho mục đích học tập, phi thương mại.
