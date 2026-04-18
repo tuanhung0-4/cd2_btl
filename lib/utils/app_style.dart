@@ -2,61 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Neo-Brutalist Palette
-  static const Color background = Color(0xFFFBEFE3); // Light Beige / Cream
-  static const Color cardBackground = Colors.white;
+  // Cozy Cafe Palette
+  static const Color background = Color(0xFFF1DECB); // Warm Beige
+  static const Color cardBackground = Color(0xFFE8D3C0); // Slightly darker beige for cards
   
-  static const Color primary = Color(0xFFFF4D4D); // Bright Red/Coral
-  static const Color secondary = Color(0xFF1A1A1A); // Black/Dark Gray
-  static const Color accent = Color(0xFFFFD93D); // Warm yellow for contrast if needed
-  static const Color danger = Color(0xFFE74A3B); 
+  static const Color primary = Color(0xFF3E2723); // Dark Brown
+  static const Color secondary = Color(0xFF5D4037); // Medium Brown
+  static const Color accent = Color(0xFF8D6E63); // Light Brown
+  static const Color danger = Color(0xFFD32F2F); 
   
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xFF636E72);
+  static const Color textPrimary = Color(0xFF3E2723); // Dark brown text
+  static const Color textSecondary = Color(0xFF5D4037);
   static const Color textWhite = Colors.white;
 
   // Shapes
-  static const double borderRadius = 24.0;
+  static const double borderRadius = 20.0;
 }
 
 class AppStyle {
-  // Neo-Brutalist Card (Flat, usually with sharp or slightly rounded corners and strong borders)
+  // Soft, continuous look (Glass/Soft UI inspired from image)
   static BoxDecoration cardDecoration = BoxDecoration(
+    color: AppColors.background,
+    borderRadius: BorderRadius.circular(AppColors.borderRadius),
+    border: Border.all(color: AppColors.primary, width: 1.5),
+    boxShadow: [],
+  );
+
+  static BoxDecoration filledCardDecoration = BoxDecoration(
     color: AppColors.cardBackground,
     borderRadius: BorderRadius.circular(AppColors.borderRadius),
-    border: Border.all(color: AppColors.textPrimary, width: 2),
-    // Material Design 3 shadow alternative: flat offset
-    boxShadow: const [
+    boxShadow: [
       BoxShadow(
-        color: AppColors.textPrimary,
-        offset: Offset(4, 4),
-        blurRadius: 0,
+        color: Colors.black.withOpacity(0.05),
+        offset: const Offset(0, 4),
+        blurRadius: 10,
       ),
     ],
   );
 
   static BoxDecoration circleDecoration = BoxDecoration(
-    color: AppColors.cardBackground,
+    color: AppColors.background,
     shape: BoxShape.circle,
-    border: Border.all(color: AppColors.textPrimary, width: 2),
-    boxShadow: const [
-      BoxShadow(
-        color: AppColors.textPrimary,
-        offset: Offset(4, 4),
-        blurRadius: 0,
-      ),
-    ],
+    border: Border.all(color: AppColors.primary, width: 1.5),
   );
 
-  // Swiss Typography focus (Sans Serif, Clean, High Contrast)
-  static TextStyle heading = GoogleFonts.outfit(
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
+  // Typography focus
+  static TextStyle titleFont = GoogleFonts.pacifico(
+    fontSize: 28,
     color: AppColors.textPrimary,
-    letterSpacing: -0.5,
   );
 
-  static TextStyle subHeading = GoogleFonts.outfit(
+  static TextStyle heading = GoogleFonts.poppins(
+    fontSize: 26,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  static TextStyle subHeading = GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
@@ -68,10 +70,9 @@ class AppStyle {
     color: AppColors.textPrimary,
   );
 
-  static TextStyle buttonText = GoogleFonts.outfit(
-    fontSize: 18,
+  static TextStyle buttonText = GoogleFonts.poppins(
+    fontSize: 16,
     fontWeight: FontWeight.bold,
     color: AppColors.textWhite,
   );
 }
-

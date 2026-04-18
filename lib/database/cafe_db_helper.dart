@@ -1,9 +1,12 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
+/// Lớp hỗ trợ kết nối và thao tác với Database SQLite cho ứng dụng quản lý Cafe
 class CafeDBHelper {
   static Database? _db;
 
+  /// Khởi tạo và lấy đối tượng database
+  /// Tự động tạo các bảng (users, products, tables, bills, bill_details) nếu chưa tồn tại
   static Future<Database> getDB() async {
     if (_db != null) return _db!;
     // Nâng cấp lên v4 để làm mới database và thêm cột paidAt
@@ -21,36 +24,50 @@ class CafeDBHelper {
     return _db!;
   }
   
-  // Auth
+  // ====================== PHẦN XÁC THỰC (AUTH) ======================
+  
+  /// Đăng ký người dùng mới. Trả về ID người dùng nếu thành công, -1 nếu thất bại (trùng tên)
   static Future<int> register(String user, String pass) async {
     final db = await getDB();
     try { return await db.insert('users', {'username': user, 'password': pass}); } catch (e) { return -1; }
   }
+  
+  /// Đăng nhập. Trả về thông tin user nếu đúng tài khoản/mật khẩu, null nếu sai
   static Future<Map<String, dynamic>?> login(String user, String pass) async {
     final db = await getDB();
     var res = await db.query('users', where: 'username = ? AND password = ?', whereArgs: [user, pass]);
     return res.isNotEmpty ? res.first : null;
   }
 
-  // Products
+  // ====================== PHẦN QUẢN LÝ SẢN PHẨM ======================
+  
+  /// Thêm một sản phẩm/món nước mới vào hệ thống
   static Future<int> addProduct(Map<String, dynamic> data) async {
     final db = await getDB();
     return await db.insert('products', data);
   }
+  
+  /// Lấy danh sách toàn bộ sản phẩm của một user
   static Future<List<Map<String, dynamic>>> getProducts(int userId) async {
     final db = await getDB();
     return await db.query('products', where: 'userId = ?', whereArgs: [userId]);
   }
+  
+  /// Xoá sản phẩm theo ID
   static Future<int> deleteProduct(int id) async {
     final db = await getDB();
     return await db.delete('products', where: 'id = ?', whereArgs: [id]);
   }
 
-  // Tables
+  // ====================== PHẦN QUẢN LÝ BÀN ======================
+  
+  /// Thêm bàn mới
   static Future<int> addTable(Map<String, dynamic> data) async {
     final db = await getDB();
     return await db.insert('tables', data);
   }
+  
+  /// Lấy danh sách bàn kèm theo tổng số món đang đặt chờ trên bàn đó
   static Future<List<Map<String, dynamic>>> getTables(int userId) async {
     final db = await getDB();
     return await db.rawQuery('''
@@ -59,6 +76,8 @@ class CafeDBHelper {
       WHERE t.userId = ?
     ''', [userId]);
   }
+  
+  /// Cập nhật trạng thái bàn (VD: Trống -> Đang phục vụ) và số khách nếu có
   static Future<int> updateTableStatus(int id, String status, {String? openedAt, int? guestCount}) async {
     final db = await getDB();
     Map<String, dynamic> values = {'status': status};
@@ -66,12 +85,16 @@ class CafeDBHelper {
     values['guestCount'] = guestCount ?? 0;
     return await db.update('tables', values, where: 'id = ?', whereArgs: [id]);
   }
+  
+  /// Xóa bàn theo ID
   static Future<int> deleteTable(int id) async {
     final db = await getDB();
     return await db.delete('tables', where: 'id = ?', whereArgs: [id]);
   }
 
-  // Orders/Bills
+  // ====================== PHẦN QUẢN LÝ HÓA ĐƠN ======================
+  
+  /// Tạo một hóa đơn mới cho bàn với trạng thái Pending (Đang phục vụ)
   static Future<int> startBill(int tableId, int userId) async {
     final db = await getDB();
     return await db.insert('bills', {
@@ -83,6 +106,7 @@ class CafeDBHelper {
     });
   }
 
+  /// Thêm món vào hóa đơn. Nếu món đã có thì tăng số lượng.
   static Future<int> addToBill(int billId, int productId, double price, {int quantity = 1}) async {
     final db = await getDB();
     var existing = await db.query('bill_details', where: 'billId = ? AND productId = ?', whereArgs: [billId, productId]);
@@ -99,6 +123,7 @@ class CafeDBHelper {
     }
   }
 
+  /// Bớt món khỏi hóa đơn. Nếu số lượng = 1 thì xoá hẳn món đó.
   static Future<int> removeFromBill(int billId, int productId) async {
     final db = await getDB();
     var existing = await db.query('bill_details', where: 'billId = ? AND productId = ?', whereArgs: [billId, productId]);
@@ -113,12 +138,14 @@ class CafeDBHelper {
     return 0;
   }
 
+  /// Lấy hóa đơn đang chờ (Pending) của một bàn
   static Future<Map<String, dynamic>?> getActiveBill(int tableId) async {
     final db = await getDB();
     var res = await db.query('bills', where: 'tableId = ? AND status = ?', whereArgs: [tableId, 'Pending']);
     return res.isNotEmpty ? res.first : null;
   }
 
+  /// Lấy danh sách chi tiết các món trong một hóa đơn
   static Future<List<Map<String, dynamic>>> getBillItems(int billId) async {
     final db = await getDB();
     return await db.rawQuery('''
@@ -129,6 +156,7 @@ class CafeDBHelper {
     ''', [billId]);
   }
 
+  /// Đóng hóa đơn (Chuyển trạng thái sang Paid) và lưu tổng tiền, thời gian thanh toán
   static Future<void> closeBill(int billId, double totalAmount) async {
     final db = await getDB();
     await db.update('bills', {
@@ -138,6 +166,7 @@ class CafeDBHelper {
     }, where: 'id = ?', whereArgs: [billId]);
   }
 
+  /// Lấy danh sách các hóa đơn đã thanh toán để xem lịch sử
   static Future<List<Map<String, dynamic>>> getBills(int userId) async {
     final db = await getDB();
     return await db.rawQuery('''
@@ -149,28 +178,28 @@ class CafeDBHelper {
     ''', [userId]);
   }
 
+  /// Tính tổng doanh thu (Tổng tiền của tất cả các bill đã thanh toán)
   static Future<double> getRevenue(int userId) async {
     final db = await getDB();
     var res = await db.rawQuery("SELECT SUM(totalAmount) as total FROM bills WHERE userId = ? AND status = 'Paid'", [userId]);
     return (res.first['total'] as num?)?.toDouble() ?? 0.0;
   }
 
-  // Tổng số hóa đơn đã thanh toán của người dùng
+  /// Lấy tổng số lượng hóa đơn đã thanh toán
   static Future<int> getTotalBillsCount(int userId) async {
     final db = await getDB();
     var res = await db.rawQuery("SELECT COUNT(*) as cnt FROM bills WHERE userId = ? AND status = 'Paid'", [userId]);
-    // rawQuery returns numbers sometimes as int or num depending on platform
     var cnt = res.first['cnt'];
     if (cnt is int) return cnt;
     if (cnt is num) return cnt.toInt();
     return 0;
   }
 
-  // Lấy số đơn theo từng ngày trong khoảng `days` ngày gần nhất (bao gồm hôm nay)
-  // Trả về danh sách map: { 'day': 'YYYY-MM-DD', 'count': N }
+  /// Lấy số lượng đơn hàng theo từng ngày trong khoảng `days` ngày gần nhất
+  /// Trả về danh sách map: { 'day': 'YYYY-MM-DD', 'count': N } dùng để vẽ biểu đồ
   static Future<List<Map<String, dynamic>>> getOrdersPerDay(int userId, {int days = 7}) async {
     final db = await getDB();
-    // Tính ngày bắt đầu (00:00 của ngày bắt đầu) từ Dart và so sánh với trường paidAt (ISO string)
+    // Tính ngày bắt đầu (00:00 của ngày bắt đầu)
     DateTime start = DateTime.now().subtract(Duration(days: days - 1));
     DateTime startDay = DateTime(start.year, start.month, start.day);
     String startIso = startDay.toIso8601String();
@@ -183,7 +212,7 @@ class CafeDBHelper {
       ORDER BY DATE(paidAt) ASC
     ''', [userId, startIso]);
 
-    // Ensure we return a continuous list for each day in the range (fill 0 where không có đơn)
+    // Đảm bảo trả về mảng liên tục cho mỗi ngày (điền 0 nếu ngày đó không có đơn)
     List<Map<String, dynamic>> filled = [];
     for (int i = 0; i < days; i++) {
       DateTime d = DateTime.now().subtract(Duration(days: days - 1 - i));
@@ -202,14 +231,14 @@ class CafeDBHelper {
         }
       }
     }
-
     return filled;
   }
 
+  /// Lấy số lượng đơn hàng cho các ngày trong tuần hiện tại
   static Future<List<Map<String, dynamic>>> getOrdersForThisWeek(int userId) async {
     final db = await getDB();
     DateTime now = DateTime.now();
-    // Monday is start of week
+    // Tính ngày đầu tuần (Thứ Hai)
     DateTime startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
     String startIso = "${startOfWeek.year}-${startOfWeek.month.toString().padLeft(2, '0')}-${startOfWeek.day.toString().padLeft(2, '0')} 00:00:00";
 
@@ -232,4 +261,4 @@ class CafeDBHelper {
     }
     return filled;
   }
-}
+}

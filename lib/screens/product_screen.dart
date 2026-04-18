@@ -1,9 +1,16 @@
+// Dùng để xử lý file ảnh món ăn
 import 'dart:io';
+// Widget iOS
 import 'package:flutter/cupertino.dart';
+// Widget Material
 import 'package:flutter/material.dart';
+// Chọn ảnh từ gallery
 import 'package:image_picker/image_picker.dart';
+// Định dạng số tiền
 import 'package:intl/intl.dart';
+// Truy vấn database
 import '../database/cafe_db_helper.dart';
+// Style chung toàn app
 import '../utils/app_style.dart';
 
 class ProductScreen extends StatefulWidget {

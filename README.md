@@ -1,16 +1,42 @@
-# quan_li_cong_viec
+# Quản Lý Quán Cafe (Cafe Pro Manager)
 
-A new Flutter project.
+Ứng dụng Flutter quản lý quán cafe với giao diện hiện đại, tối giản, lấy cảm hứng từ phong cách Neo-Brutalism và Material Design 3.
 
-## Getting Started
+## Tính năng nổi bật
+- Quản lý thực đơn (món ăn, đồ uống) kèm hình ảnh, danh mục.
+- Quản lý bàn, trạng thái bàn, thời gian phục vụ.
+- Đặt món, thêm món vào hóa đơn, quản lý hóa đơn.
+- Thống kê doanh thu, tổng hóa đơn, số đơn/ngày, biểu đồ cột trực quan.
+- Giao diện đẹp, bo góc lớn, màu nâu kem, font hiện đại, icon sinh động.
+- Đăng nhập, đăng ký, bảo mật tài khoản.
 
-This project is a starting point for a Flutter application.
+## Hình ảnh giao diện
+![Demo UI](demo_ui.jpg)
 
-A few resources to get you started if this is your first Flutter project:
+## Hướng dẫn cài đặt
+1. Cài đặt Flutter SDK: https://docs.flutter.dev/get-started/install
+2. Clone dự án:
+   ```sh
+   git clone <repo-url>
+   ```
+3. Cài đặt dependencies:
+   ```sh
+   flutter pub get
+   ```
+4. Chạy ứng dụng:
+   ```sh
+   flutter run
+   ```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Cấu trúc thư mục
+- `lib/screens/` - Các màn hình chính (welcome, login, home, menu, table, revenue...)
+- `lib/widgets/` - Các widget tái sử dụng (item, button, sheet...)
+- `lib/models/` - Định nghĩa model dữ liệu (Food, Category, Order...)
+- `lib/utils/` - Style, màu sắc, font, tiện ích chung
+- `lib/database/` - Xử lý database (SQLite)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Đóng góp
+- Fork, tạo pull request hoặc liên hệ tác giả để đóng góp ý tưởng, code, UI/UX.
+
+## Bản quyền
+- Dự án mã nguồn mở, sử dụng cho mục đích học tập, phi thương mại.

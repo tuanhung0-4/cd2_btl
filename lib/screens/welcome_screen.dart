@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../utils/app_style.dart';
 import 'login_screen.dart';
 
@@ -14,21 +13,21 @@ class WelcomeScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Decorative Geometric Shapes (Neo-Brutalist / Modern Material)
+          // Soft decorative shapes
           Positioned(
             top: -size.width * 0.2,
             right: -size.width * 0.1,
-            child: _buildCircle(size.width * 0.6, AppColors.primary),
+            child: _buildCircle(size.width * 0.6, AppColors.cardBackground),
           ),
           Positioned(
             top: size.height * 0.15,
             left: -size.width * 0.15,
-            child: _buildOutlineCircle(size.width * 0.4),
+            child: _buildCircle(size.width * 0.4, AppColors.accent.withAlpha(50)),
           ),
           Positioned(
             bottom: size.height * 0.1,
             right: -size.width * 0.2,
-            child: _buildCircle(size.width * 0.5, AppColors.secondary.withAlpha(50)),
+            child: _buildCircle(size.width * 0.5, AppColors.secondary.withAlpha(30)),
           ),
 
           // Main Content
@@ -36,49 +35,45 @@ class WelcomeScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 80),
                   
                   // Label / App Name
-                  Text(
-                    'CAFE PRO'.toUpperCase(),
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 4.0,
-                      color: AppColors.textPrimary,
+                  Center(
+                    child: Text(
+                      'CupfulCanvas',
+                      style: AppStyle.titleFont.copyWith(
+                        fontSize: 42,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 4),
-                  Container(
-                    width: 40,
-                    height: 4,
-                    color: AppColors.primary,
                   ),
 
                   const Spacer(),
 
-                  // Big Heading (Swiss Typography)
+                  // Big Heading
                   Text(
-                    'Manage Your\nCoffee Shop\nWith Style.',
+                    'Your daily dose of joy and coffee.',
+                    textAlign: TextAlign.center,
                     style: AppStyle.heading.copyWith(
-                      fontSize: 48,
-                      height: 1.0,
+                      fontSize: 36,
+                      height: 1.2,
+                      color: AppColors.primary,
                     ),
                   ),
                   
                   const SizedBox(height: 24),
                   
                   Text(
-                    'A minimalist, powerful tool designed for modern cafe owners who value speed and aesthetics.',
+                    'Discover the best coffee blends, perfectly crafted just for you.',
+                    textAlign: TextAlign.center,
                     style: AppStyle.subHeading.copyWith(
-                      color: AppColors.textPrimary.withAlpha(180),
+                      color: AppColors.secondary,
                     ),
                   ),
 
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 60),
 
                   // Action Button
                   GestureDetector(
@@ -90,43 +85,32 @@ class WelcomeScreen extends StatelessWidget {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 70,
+                      height: 65,
                       decoration: BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.textPrimary, width: 3),
-                        boxShadow: const [
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
                           BoxShadow(
-                            color: AppColors.textPrimary,
-                            offset: Offset(6, 6),
-                            blurRadius: 0,
+                            color: AppColors.primary.withOpacity(0.3),
+                            offset: const Offset(0, 8),
+                            blurRadius: 15,
                           ),
                         ],
                       ),
                       child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'GET STARTED',
-                              style: AppStyle.buttonText.copyWith(
-                                color: Colors.white,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Icon(
-                              Icons.arrow_forward_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ],
+                        child: Text(
+                          'Get Started',
+                          style: AppStyle.buttonText.copyWith(
+                            color: Colors.white,
+                            fontSize: 18,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 60),
                 ],
               ),
             ),
@@ -143,19 +127,6 @@ class WelcomeScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.textPrimary, width: 2),
-      ),
-    );
-  }
-
-  Widget _buildOutlineCircle(double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.textPrimary, width: 2),
       ),
     );
   }

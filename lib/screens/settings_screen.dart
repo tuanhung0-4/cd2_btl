@@ -1,3 +1,4 @@
+// Màn hình cài đặt ứng dụng
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/app_style.dart';
@@ -13,8 +14,10 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  // Biến lưu ngôn ngữ hiện tại
   String _language = 'Tiếng Việt';
 
+  // Hiển thị dialog giới thiệu về ứng dụng
   void _showAboutDialog() {
     showModalBottomSheet(
       context: context,
@@ -46,6 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Xử lý đăng xuất tài khoản
   void _handleLogout() {
     showDialog(
       context: context,
@@ -84,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // UI chính của màn hình cài đặt
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -101,6 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           _buildSettingsHeader("HỆ THỐNG"),
+          // Chuyển đổi chế độ sáng/tối
           ValueListenableBuilder<ThemeMode>(
             valueListenable: themeNotifier,
             builder: (context, mode, _) {
@@ -118,6 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             }
           ),
+          // Chọn ngôn ngữ
           _buildSettingsTile(
             icon: Icons.language_rounded,
             title: "NGÔN NGỮ",
@@ -138,12 +145,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 32),
           _buildSettingsHeader("TÀI KHOẢN"),
+          // Thông tin ứng dụng
           _buildSettingsTile(
             icon: Icons.info_outline_rounded,
             title: "THÔNG TIN",
             subtitle: "Phiên bản và nhà phát triển",
             onTap: _showAboutDialog,
           ),
+          // Đăng xuất tài khoản
           _buildSettingsTile(
             icon: Icons.logout_rounded,
             title: "ĐĂNG XUẤT",
@@ -156,6 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Widget tiêu đề nhóm cài đặt
   Widget _buildSettingsHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 12),
@@ -166,6 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Widget tile cho từng mục cài đặt
   Widget _buildSettingsTile({
     required IconData icon,
     required String title,
