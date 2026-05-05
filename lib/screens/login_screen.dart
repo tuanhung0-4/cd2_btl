@@ -58,20 +58,32 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppStyle.circleDecoration.copyWith(
-                  color: AppColors.primary,
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.textPrimary, width: 3),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.textPrimary,
+                      offset: Offset(4, 4),
+                      blurRadius: 0,
+                    ),
+                  ],
+                  image: const DecorationImage(
+                    image: AssetImage('assets/logo.png'),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: const Icon(Icons.coffee_rounded, size: 60, color: Colors.white),
               ),
               const SizedBox(height: 30),
-              Text("LOGIN", style: AppStyle.heading.copyWith(fontSize: 40)),
+              Text("ĐĂNG NHẬP", style: AppStyle.heading.copyWith(fontSize: 40)),
               const SizedBox(height: 8),
-              Text("Enter your credentials to continue", style: AppStyle.subHeading),
+              Text("Nhập tài khoản để tiếp tục", style: AppStyle.subHeading),
               const SizedBox(height: 40),
-              _buildTextField(userCtrl, "Username", Icons.person_outline),
+              _buildTextField(userCtrl, "Tên đăng nhập", Icons.person_outline),
               const SizedBox(height: 20),
-              _buildTextField(passCtrl, "Password", Icons.lock_outline, isPass: true),
+              _buildTextField(passCtrl, "Mật khẩu", Icons.lock_outline, isPass: true),
               const SizedBox(height: 40),
               _isLoading
                   ? const CupertinoActivityIndicator(color: AppColors.primary)
@@ -94,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            "SIGN IN",
+                            "ĐĂNG NHẬP",
                             style: AppStyle.buttonText.copyWith(letterSpacing: 2),
                           ),
                         ),
@@ -104,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextButton(
                 onPressed: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => RegisterScreen())),
                 child: Text(
-                  "Don't have an account? Sign Up", 
+                  "Chưa có tài khoản? Đăng ký ngay", 
                   style: AppStyle.body.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,

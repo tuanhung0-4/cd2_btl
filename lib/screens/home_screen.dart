@@ -41,11 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.primary),
+        // Không dùng `const` ở đây nếu AppColors.primary không phải const
+        iconTheme: IconThemeData(color: AppColors.primary),
         actions: [
           if (widget.parentId == null)
             IconButton(
-              icon: const Icon(Icons.logout, color: AppColors.primary),
+              icon: Icon(Icons.logout, color: AppColors.primary),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
@@ -94,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     subtitle: Padding(
-                      padding: const EdgeInsets.top: 6.0),
+                      padding: const EdgeInsets.only(top: 6.0),
                       child: Text(
                         "Price: ${item['price']}đ\nNote: ${item['note'] ?? ''}",
                         style: AppStyle.body.copyWith(
@@ -148,4 +149,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
+}

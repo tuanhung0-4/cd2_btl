@@ -77,20 +77,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppStyle.circleDecoration.copyWith(
-                  color: AppColors.primary,
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.textPrimary, width: 3),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.textPrimary,
+                      offset: Offset(4, 4),
+                      blurRadius: 0,
+                    ),
+                  ],
+                  image: const DecorationImage(
+                    image: AssetImage('assets/logo.png'),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                child: const Icon(Icons.person_add_rounded, size: 60, color: Colors.white),
               ),
               const SizedBox(height: 30),
-              Text("REGISTER", style: AppStyle.heading.copyWith(fontSize: 40)),
+              Text("ĐĂNG KÝ", style: AppStyle.heading.copyWith(fontSize: 40)),
               const SizedBox(height: 8),
-              Text("Join the Cafe Pro community", style: AppStyle.subHeading),
+              Text("Tham gia vào quá trình quản lí ngay", style: AppStyle.subHeading),
               const SizedBox(height: 40),
-              _buildTextField(userCtrl, "New Username", Icons.account_circle_outlined),
+              _buildTextField(userCtrl, "Tên đăng nhập mới", Icons.account_circle_outlined),
               const SizedBox(height: 20),
-              _buildTextField(passCtrl, "Secure Password", Icons.vpn_key_outlined, isPass: true),
+              _buildTextField(passCtrl, "Mật khẩu bảo mật", Icons.vpn_key_outlined, isPass: true),
               const SizedBox(height: 40),
               _isLoading
                   ? const CupertinoActivityIndicator(color: AppColors.primary)
@@ -113,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            "CREATE ACCOUNT",
+                            "TẠO TÀI KHOẢN",
                             style: AppStyle.buttonText.copyWith(letterSpacing: 2),
                           ),
                         ),
@@ -123,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  "Already have an account? Sign In", 
+                  "Đã có tài khoản? Đăng nhập", 
                   style: AppStyle.body.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
@@ -163,4 +175,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-}
+}

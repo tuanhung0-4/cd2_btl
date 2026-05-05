@@ -17,9 +17,18 @@ class RevenueScreen extends StatefulWidget {
 
 class _RevenueScreenState extends State<RevenueScreen> {
   List<Map<String, dynamic>> bills = [];
-  double totalRevenue = 0.0;
-  List<Map<String, dynamic>> ordersPerDay = [];
-  double q1 = 0, q2 = 0, q3 = 0, q4 = 0;
+  List<Map<String, dynamic>> filteredBills = [];
+  DateTime? selectedDate;
+  double dailyRevenue = 0.0;
+  double weeklyRevenue = 0.0;
+  double monthlyRevenue = 0.0;
+  int billsToday = 0;
+  int billsThisWeek = 0;
+  int billsThisMonth = 0;
+  int itemsToday = 0;
+  int itemsThisWeek = 0;
+  int itemsThisMonth = 0;
+  List<Map<String, dynamic>> topSellingItems = [];
 
   @override
   void initState() {
@@ -35,30 +44,64 @@ class _RevenueScreenState extends State<RevenueScreen> {
   }
 
   _load() async {
-    // Always load bills (we may need count even in revenue view)
     var data = await CafeDBHelper.getBills(widget.userId);
-    var rev = await CafeDBHelper.getRevenue(widget.userId);
-    var stats = await CafeDBHelper.getOrdersForThisWeek(widget.userId);
-    if (mounted) {
-      double _q1 = 0, _q2 = 0, _q3 = 0, _q4 = 0;
-      for (var b in data) {
-        if (b['paidAt'] != null) {
-          DateTime dt = DateTime.parse(b['paidAt']);
-          double amt = (b['totalAmount'] as num).toDouble();
-          if (dt.month <= 3) _q1 += amt;
-          else if (dt.month <= 6) _q2 += amt;
-          else if (dt.month <= 9) _q3 += amt;
-          else _q4 += amt;
-        }
-      }
+    var dRev = await CafeDBHelper.getDailyRevenue(widget.userId);
+    var wRev = await CafeDBHelper.getWeeklyRevenue(widget.userId);
+    var mRev = await CafeDBHelper.getMonthlyRevenue(widget.userId);
+    
+    // Đơn hàng
+    var bToday = data.where((b) {
+      DateTime dt = DateTime.parse(b['paidAt']);
+      DateTime now = DateTime.now();
+      return dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    }).length;
+    
+    // Tuần
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    var bWeek = data.where((b) => DateTime.parse(b['paidAt']).isAfter(startOfWeek)).length;
+    
+    // Tháng
+    DateTime startOfMonth = DateTime(now.year, now.month, 1);
+    var bMonth = data.where((b) => DateTime.parse(b['paidAt']).isAfter(startOfMonth)).length;
 
+    var iToday = await CafeDBHelper.getDailyItemsSold(widget.userId); // Cần thêm vào DBHelper hoặc tính từ bills items
+    var iWeek = await CafeDBHelper.getWeeklyItemsSold(widget.userId); // Dummy cho demo hoặc load thực tế
+    var iMonth = await CafeDBHelper.getMonthlyItemsSold(widget.userId);
+    
+    var topItems = await CafeDBHelper.getTopSellingItems(widget.userId);
+    
+    if (mounted) {
       setState(() {
         bills = data;
-        totalRevenue = rev;
-        ordersPerDay = stats;
-        q1 = _q1; q2 = _q2; q3 = _q3; q4 = _q4;
+        filteredBills = data;
+        dailyRevenue = dRev;
+        weeklyRevenue = wRev;
+        monthlyRevenue = mRev;
+        billsToday = bToday;
+        billsThisWeek = bWeek;
+        billsThisMonth = bMonth;
+        itemsToday = iToday;
+        itemsThisWeek = iWeek;
+        itemsThisMonth = iMonth;
+        topSellingItems = topItems;
       });
     }
+  }
+
+  void _filterBillsByDate(DateTime? date) {
+    setState(() {
+      selectedDate = date;
+      if (date == null) {
+        filteredBills = bills;
+      } else {
+        filteredBills = bills.where((b) {
+          if (b['paidAt'] == null) return false;
+          DateTime dt = DateTime.parse(b['paidAt']);
+          return dt.year == date.year && dt.month == date.month && dt.day == date.day;
+        }).toList();
+      }
+    });
   }
 
   String _formatDateTime(String? isoString) {
@@ -243,69 +286,109 @@ class _RevenueScreenState extends State<RevenueScreen> {
   }
 
   Widget _buildBillsList() {
-    if (bills.isEmpty) return const Center(child: Text("Chưa có hóa đơn nào.", style: TextStyle(color: AppColors.textSecondary)));
-    return ListView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: bills.length,
-      itemBuilder: (context, i) {
-        var b = bills[i];
-        return GestureDetector(
-          onTap: () => _showBillDetail(b),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(20),
-            decoration: AppStyle.cardDecoration.copyWith(
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.textPrimary,
-                  offset: Offset(4, 4),
-                  blurRadius: 0,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.textPrimary, width: 2),
-                  ),
-                  child: const Icon(Icons.receipt_long_rounded, color: Colors.white),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${b['tableName'] ?? 'Unknown'}".toUpperCase(), 
-                        style: AppStyle.heading.copyWith(fontSize: 18)
-                      ),
-                      const SizedBox(height: 2),
-                      Text(_formatDateTime(b['createdAt']), style: AppStyle.body.copyWith(fontSize: 11, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "${NumberFormat("#,###").format(b['totalAmount'])}đ", 
-                      style: AppStyle.heading.copyWith(color: AppColors.primary, fontSize: 18)
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                selectedDate == null ? "Tất cả giao dịch" : "Ngày: ${DateFormat('dd/MM/yyyy').format(selectedDate!)}",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              Row(
+                children: [
+                  if (selectedDate != null)
+                    IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.grey),
+                      onPressed: () => _filterBillsByDate(null),
                     ),
-                    Text(
-                      "VIEW INFO", 
-                      style: AppStyle.body.copyWith(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  IconButton(
+                    icon: const Icon(Icons.calendar_month, color: AppColors.primary),
+                    onPressed: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null) _filterBillsByDate(picked);
+                    },
+                  ),
+                ],
+              )
+            ],
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: filteredBills.isEmpty 
+            ? const Center(child: Text("Không có hóa đơn nào.", style: TextStyle(color: AppColors.textSecondary)))
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: filteredBills.length,
+                itemBuilder: (context, i) {
+                  var b = filteredBills[i];
+                  return GestureDetector(
+                    onTap: () => _showBillDetail(b),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(20),
+                      decoration: AppStyle.cardDecoration.copyWith(
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.textPrimary,
+                            offset: Offset(4, 4),
+                            blurRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.textPrimary, width: 2),
+                            ),
+                            child: const Icon(Icons.receipt_long_rounded, color: Colors.white),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${b['tableName'] ?? 'Unknown'}".toUpperCase(), 
+                                  style: AppStyle.heading.copyWith(fontSize: 18)
+                                ),
+                                const SizedBox(height: 2),
+                                Text(_formatDateTime(b['createdAt']), style: AppStyle.body.copyWith(fontSize: 11, color: AppColors.textSecondary)),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "${NumberFormat("#,###").format(b['totalAmount'])}đ", 
+                                style: AppStyle.heading.copyWith(color: AppColors.primary, fontSize: 18)
+                              ),
+                              Text(
+                                "CHI TIẾT", 
+                                style: AppStyle.body.copyWith(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+        ),
+      ],
     );
   }
 
@@ -313,113 +396,130 @@ class _RevenueScreenState extends State<RevenueScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Revenue Summary Card
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(40),
+            padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.textPrimary, width: 3),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.textPrimary,
-                  offset: Offset(8, 8),
-                  blurRadius: 0,
-                )
-              ],
+              boxShadow: const [BoxShadow(color: AppColors.textPrimary, offset: Offset(6, 6), blurRadius: 0)],
             ),
             child: Column(
               children: [
-                Text(
-                  "TỔNG DOANH THU", 
-                  style: GoogleFonts.outfit(color: Colors.white.withAlpha(200), fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2)
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "${NumberFormat("#,###").format(totalRevenue)} đ", 
-                  style: AppStyle.heading.copyWith(color: Colors.white, fontSize: 36)
-                ),
+                Text("DOANH THU THÁNG NÀY", style: GoogleFonts.outfit(color: Colors.white.withAlpha(180), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                const SizedBox(height: 8),
+                Text("${NumberFormat("#,###").format(monthlyRevenue)} đ", style: AppStyle.heading.copyWith(color: Colors.white, fontSize: 32)),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text("HÔM NAY", style: TextStyle(color: Colors.white.withAlpha(150), fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text("${NumberFormat("#,###").format(dailyRevenue)}đ", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                    Container(width: 1, height: 30, color: Colors.white.withAlpha(50)),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text("TUẦN NÀY", style: TextStyle(color: Colors.white.withAlpha(150), fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text("${NumberFormat("#,###").format(weeklyRevenue)}đ", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),
-          const SizedBox(height: 48),
-          _buildStatCard(Icons.article_rounded, "Tổng hóa đơn", "${bills.length}", AppColors.secondary),
           
           const SizedBox(height: 32),
+          Text("THỐNG KÊ ĐƠN HÀNG", style: AppStyle.heading.copyWith(fontSize: 20)),
+          const SizedBox(height: 16),
+          _buildCountGrid("Hóa đơn", billsToday, billsThisWeek, billsThisMonth, AppColors.secondary),
           
+          const SizedBox(height: 24),
+          Text("THỐNG KÊ SỐ LƯỢNG", style: AppStyle.heading.copyWith(fontSize: 20)),
+          const SizedBox(height: 16),
+          _buildCountGrid("Món đã bán", itemsToday, itemsThisWeek, itemsThisMonth, AppColors.accent),
+          
+          const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("THỐNG KÊ", style: AppStyle.heading.copyWith(fontSize: 20)),
+              Text("MÓN BÁN CHẠY", style: AppStyle.heading.copyWith(fontSize: 20)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.textPrimary, width: 2),
-                ),
-                child: Text("HÀNG TUẦN", style: AppStyle.body.copyWith(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.textPrimary, width: 2)),
+                child: Text("TOP 10", style: AppStyle.body.copyWith(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: AppStyle.cardDecoration.copyWith(
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.textPrimary,
-                  offset: Offset(4, 4),
-                  blurRadius: 0,
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 180,
-                  child: ordersPerDay.isEmpty 
-                    ? const Center(child: Text("No data available"))
-                    : _buildBarChart(ordersPerDay),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "Tổng số đơn trong 7 ngày gần nhất", 
-                  style: AppStyle.body.copyWith(color: AppColors.textSecondary, fontSize: 12)
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 40),
-          
-          Text("DOANH THU THEO QUÝ", style: AppStyle.heading.copyWith(fontSize: 20)),
-          const SizedBox(height: 16),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.3,
-            children: [
-              _buildQuarterCard("Quý 1", q1, AppColors.primary),
-              _buildQuarterCard("Quý 2", q2, AppColors.secondary),
-              _buildQuarterCard("Quý 3", q3, AppColors.accent),
-              _buildQuarterCard("Quý 4", q4, AppColors.primary),
-            ],
-          ),
-          
+          _buildTopSellingCard(),
           const SizedBox(height: 60),
         ],
       ),
     );
   }
 
-  Widget _buildQuarterCard(String label, double amount, Color color) {
+  Widget _buildCountGrid(String label, int today, int week, int month, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: AppStyle.cardDecoration.copyWith(
+        boxShadow: const [BoxShadow(color: AppColors.textPrimary, offset: Offset(4, 4), blurRadius: 0)],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(label == "Hóa đơn" ? Icons.receipt_long : Icons.fastfood, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(label.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildCountItem("Ngày", today),
+              _buildCountItem("Tuần", week),
+              _buildCountItem("Tháng", month),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCountItem(String period, int count) {
+    return Column(
+      children: [
+        Text(period, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text("$count", style: AppStyle.heading.copyWith(fontSize: 22, color: AppColors.textPrimary)),
+      ],
+    );
+  }
+
+  Widget _buildTopSellingCard() {
+    if (topSellingItems.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: AppStyle.cardDecoration,
+        child: const Center(child: Text("Chưa có món nào được bán", style: TextStyle(color: AppColors.textSecondary))),
+      );
+    }
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
       decoration: AppStyle.cardDecoration.copyWith(
         boxShadow: const [
           BoxShadow(
@@ -430,19 +530,44 @@ class _RevenueScreenState extends State<RevenueScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(label.toUpperCase(), style: AppStyle.body.copyWith(fontWeight: FontWeight.w900, fontSize: 10, color: AppColors.textSecondary)),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              "${NumberFormat("#,###").format(amount)}đ", 
-              style: AppStyle.heading.copyWith(fontSize: 18, color: AppColors.textPrimary)
+        children: List.generate(topSellingItems.length, (index) {
+          var item = topSellingItems[index];
+          return Container(
+            margin: EdgeInsets.only(bottom: index == topSellingItems.length - 1 ? 0 : 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: index < 3 ? AppColors.primary : AppColors.background,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.textPrimary, width: 2),
+                  ),
+                  child: Text(
+                    "${index + 1}", 
+                    style: TextStyle(
+                      color: index < 3 ? Colors.white : AppColors.textPrimary, 
+                      fontWeight: FontWeight.bold
+                    )
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    "${item['name']}", 
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)
+                  )
+                ),
+                Text(
+                  "${item['totalQuantity']}", 
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        }),
       ),
     );
   }
@@ -499,7 +624,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
         children: [
           // chart area
           SizedBox(
-            height: 160,
+            height: 130, // Reduced from 160 to avoid overflow
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(counts.length, (i) {

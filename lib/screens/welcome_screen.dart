@@ -42,7 +42,7 @@ class WelcomeScreen extends StatelessWidget {
                   // Label / App Name
                   Center(
                     child: Text(
-                      'CupfulCanvas',
+                      'Coffee Canvas',
                       style: AppStyle.titleFont.copyWith(
                         fontSize: 42,
                         color: AppColors.primary,
@@ -54,7 +54,7 @@ class WelcomeScreen extends StatelessWidget {
 
                   // Big Heading
                   Text(
-                    'Your daily dose of joy and coffee.',
+                    'Đánh thức cảm hứng trong từng tách cà phê.',
                     textAlign: TextAlign.center,
                     style: AppStyle.heading.copyWith(
                       fontSize: 36,
@@ -66,7 +66,7 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   
                   Text(
-                    'Discover the best coffee blends, perfectly crafted just for you.',
+                    'Khám phá hương vị cà phê tuyệt vời nhất, được chuẩn bị riêng dành cho bạn.',
                     textAlign: TextAlign.center,
                     style: AppStyle.subHeading.copyWith(
                       color: AppColors.secondary,
@@ -99,7 +99,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          'Get Started',
+                          'Bắt đầu ngay',
                           style: AppStyle.buttonText.copyWith(
                             color: Colors.white,
                             fontSize: 18,

@@ -261,4 +261,112 @@ class CafeDBHelper {
     }
     return filled;
   }
-}
+
+  /// Tính tổng doanh thu trong ngày
+  static Future<double> getDailyRevenue(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    String startIso = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} 00:00:00";
+    var res = await db.rawQuery("SELECT SUM(totalAmount) as total FROM bills WHERE userId = ? AND status = 'Paid' AND paidAt >= ?", [userId, startIso]);
+    return (res.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  /// Tính tổng doanh thu trong tuần
+  static Future<double> getWeeklyRevenue(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    String startIso = "${startOfWeek.year}-${startOfWeek.month.toString().padLeft(2, '0')}-${startOfWeek.day.toString().padLeft(2, '0')} 00:00:00";
+    var res = await db.rawQuery("SELECT SUM(totalAmount) as total FROM bills WHERE userId = ? AND status = 'Paid' AND paidAt >= ?", [userId, startIso]);
+    return (res.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  /// Lấy tổng số lượng món đã bán
+  static Future<int> getTotalItemsSold(int userId) async {
+    final db = await getDB();
+    var res = await db.rawQuery('''
+      SELECT SUM(bd.quantity) as count 
+      FROM bill_details bd 
+      JOIN bills b ON bd.billId = b.id 
+      WHERE b.userId = ? AND b.status = 'Paid'
+    ''', [userId]);
+    return (res.first['count'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Lấy tổng số lượng món đã bán trong ngày
+  static Future<int> getDailyItemsSold(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    String startOfDay = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} 00:00:00";
+    var res = await db.rawQuery('''
+      SELECT SUM(bd.quantity) as count 
+      FROM bill_details bd 
+      JOIN bills b ON bd.billId = b.id 
+      WHERE b.userId = ? AND b.status = 'Paid' AND b.paidAt >= ?
+    ''', [userId, startOfDay]);
+    return (res.first['count'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Lấy tổng số lượng món đã bán trong tuần
+  static Future<int> getWeeklyItemsSold(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    String startIso = "${startOfWeek.year}-${startOfWeek.month.toString().padLeft(2, '0')}-${startOfWeek.day.toString().padLeft(2, '0')} 00:00:00";
+    var res = await db.rawQuery('''
+      SELECT SUM(bd.quantity) as count 
+      FROM bill_details bd 
+      JOIN bills b ON bd.billId = b.id 
+      WHERE b.userId = ? AND b.status = 'Paid' AND b.paidAt >= ?
+    ''', [userId, startIso]);
+    return (res.first['count'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Lấy tổng số lượng món đã bán trong tháng
+  static Future<int> getMonthlyItemsSold(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    String startOfMonth = "${now.year}-${now.month.toString().padLeft(2, '0')}-01 00:00:00";
+    var res = await db.rawQuery('''
+      SELECT SUM(bd.quantity) as count 
+      FROM bill_details bd 
+      JOIN bills b ON bd.billId = b.id 
+      WHERE b.userId = ? AND b.status = 'Paid' AND b.paidAt >= ?
+    ''', [userId, startOfMonth]);
+    return (res.first['count'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Tính tổng doanh thu trong tháng
+  static Future<double> getMonthlyRevenue(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    String startOfMonth = "${now.year}-${now.month.toString().padLeft(2, '0')}-01 00:00:00";
+    var res = await db.rawQuery("SELECT SUM(totalAmount) as total FROM bills WHERE userId = ? AND status = 'Paid' AND paidAt >= ?", [userId, startOfMonth]);
+    return (res.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  /// Lấy tổng số lượng hóa đơn đã thanh toán trong tháng
+  static Future<int> getMonthlyBillsCount(int userId) async {
+    final db = await getDB();
+    DateTime now = DateTime.now();
+    String startOfMonth = "${now.year}-${now.month.toString().padLeft(2, '0')}-01 00:00:00";
+    var res = await db.rawQuery("SELECT COUNT(*) as cnt FROM bills WHERE userId = ? AND status = 'Paid' AND paidAt >= ?", [userId, startOfMonth]);
+    return (res.first['cnt'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Lấy danh sách món bán chạy nhất
+  static Future<List<Map<String, dynamic>>> getTopSellingItems(int userId) async {
+    final db = await getDB();
+    return await db.rawQuery('''
+      SELECT p.name, SUM(bd.quantity) as totalQuantity 
+      FROM bill_details bd 
+      JOIN bills b ON bd.billId = b.id 
+      JOIN products p ON bd.productId = p.id 
+      WHERE b.userId = ? AND b.status = 'Paid' 
+      GROUP BY bd.productId 
+      ORDER BY totalQuantity DESC 
+      LIMIT 10
+    ''', [userId]);
+  }
+}
+
