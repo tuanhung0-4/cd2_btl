@@ -12,14 +12,25 @@ class CafeDBHelper {
     // Nâng cấp lên v4 để làm mới database và thêm cột paidAt
     _db = await openDatabase(
       join(await getDatabasesPath(), 'cafe_pro_v4.db'),
+      // Tạo schema mới (thêm cột `status` cho products)
       onCreate: (db, version) async {
         await db.execute("CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)");
-        await db.execute("CREATE TABLE products(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL, description TEXT, imagePath TEXT, category TEXT, userId INTEGER)");
+        await db.execute("CREATE TABLE products(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL, description TEXT, imagePath TEXT, category TEXT, status TEXT, userId INTEGER)");
         await db.execute("CREATE TABLE tables(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, status TEXT, openedAt TEXT, guestCount INTEGER, userId INTEGER)");
         await db.execute("CREATE TABLE bills(id INTEGER PRIMARY KEY AUTOINCREMENT, tableId INTEGER, totalAmount REAL, status TEXT, createdAt TEXT, paidAt TEXT, userId INTEGER)");
         await db.execute("CREATE TABLE bill_details(id INTEGER PRIMARY KEY AUTOINCREMENT, billId INTEGER, productId INTEGER, quantity INTEGER, price REAL)");
       },
-      version: 1,
+      // Khi nâng version, thực hiện migration an toàn để thêm cột nếu cần
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          try {
+            await db.execute("ALTER TABLE products ADD COLUMN status TEXT DEFAULT 'Còn hàng'");
+          } catch (e) {
+            // Nếu đã tồn tại hoặc lỗi, bỏ qua
+          }
+        }
+      },
+      version: 2,
     );
     return _db!;
   }
@@ -57,6 +68,18 @@ class CafeDBHelper {
   static Future<int> deleteProduct(int id) async {
     final db = await getDB();
     return await db.delete('products', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Cập nhật một sản phẩm theo ID
+  static Future<int> updateProduct(int id, Map<String, dynamic> data) async {
+    final db = await getDB();
+    return await db.update('products', data, where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Cập nhật trạng thái (Còn hàng / Hết hàng) của sản phẩm
+  static Future<int> updateProductStatus(int id, String status) async {
+    final db = await getDB();
+    return await db.update('products', {'status': status}, where: 'id = ?', whereArgs: [id]);
   }
 
   // ====================== PHẦN QUẢN LÝ BÀN ======================
@@ -369,4 +392,4 @@ class CafeDBHelper {
     ''', [userId]);
   }
 }
-
+

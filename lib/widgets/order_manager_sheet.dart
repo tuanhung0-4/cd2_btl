@@ -183,7 +183,9 @@ class _OrderManagerSheetState extends State<OrderManagerSheet> {
                                 itemBuilder: (context, i) {
                                   var product = filteredProducts[i];
                                   int qty = selectedQuantities[product['id']] ?? 1;
-                                  
+                                  // Check availability: treat null/unknown as available
+                                  bool isAvailable = (product['status']?.toString() ?? 'Còn hàng') == 'Còn hàng';
+
                                    return Container(
                                      margin: const EdgeInsets.only(bottom: 12),
                                      padding: const EdgeInsets.all(8),
@@ -224,29 +226,38 @@ class _OrderManagerSheetState extends State<OrderManagerSheet> {
                                          Row(
                                            mainAxisAlignment: MainAxisAlignment.center,
                                            children: [
+                                             // Decrease
                                              GestureDetector(
-                                               onTap: () => setState(() => selectedQuantities[product['id']] = qty > 1 ? qty - 1 : 1),
-                                               child: const Icon(CupertinoIcons.minus_circle_fill, size: 22, color: AppColors.textSecondary),
+                                               onTap: isAvailable ? () => setState(() => selectedQuantities[product['id']] = qty > 1 ? qty - 1 : 1) : null,
+                                               child: Icon(CupertinoIcons.minus_circle_fill, size: 22, color: isAvailable ? AppColors.textSecondary : Colors.grey),
                                              ),
                                              SizedBox(width: 25, child: Text("$qty", textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                             // Increase
                                              GestureDetector(
-                                               onTap: () => setState(() => selectedQuantities[product['id']] = qty + 1),
-                                               child: const Icon(CupertinoIcons.plus_circle_fill, size: 22, color: AppColors.primary),
+                                               onTap: isAvailable ? () => setState(() => selectedQuantities[product['id']] = qty + 1) : null,
+                                               child: Icon(CupertinoIcons.plus_circle_fill, size: 22, color: isAvailable ? AppColors.primary : Colors.grey),
                                              ),
                                              const SizedBox(width: 10),
                                              ElevatedButton(
                                                style: ElevatedButton.styleFrom(
-                                                 backgroundColor: AppColors.primary,
+                                                 backgroundColor: isAvailable ? AppColors.primary : Colors.grey,
                                                  padding: const EdgeInsets.symmetric(horizontal: 10),
                                                  minimumSize: const Size(50, 30),
                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                                ),
-                                               onPressed: () async {
-                                                 await CafeDBHelper.addToBill(widget.bill['id'], product['id'], product['price'], quantity: qty);
-                                                 _load();
-                                                 setState(() => selectedQuantities[product['id']] = 1);
-                                               },
-                                               child: const Text("CHỌN", style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                                               onPressed: isAvailable
+                                                   ? () async {
+                                                       await CafeDBHelper.addToBill(widget.bill['id'], product['id'], product['price'], quantity: qty);
+                                                       _load();
+                                                       setState(() => selectedQuantities[product['id']] = 1);
+                                                     }
+                                                   : () {
+                                                       // Show notice that product is out of stock
+                                                       ScaffoldMessenger.of(context).showSnackBar(
+                                                         const SnackBar(content: Text('Món này hiện đang hết hàng', style: TextStyle(fontWeight: FontWeight.bold)), duration: Duration(seconds: 2)),
+                                                       );
+                                                     },
+                                               child: Text(isAvailable ? "CHỌN" : "HẾT HÀNG", style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
                                              )
                                            ],
                                          )

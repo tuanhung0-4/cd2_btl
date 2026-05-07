@@ -144,6 +144,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           'description': description,
                           'imagePath': image?.path ?? '',
                           'category': category,
+                          'status': 'Còn hàng',
                           'userId': widget.userId
                         });
                         Navigator.pop(context);
@@ -160,6 +161,145 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ),
         ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEditProductSheet(Map<String, dynamic> product) async {
+    String name = product['name'] ?? '';
+    String price = (product['price'] ?? '').toString();
+    String description = product['description'] ?? '';
+    String category = product['category'] ?? categories[0];
+    String status = product['status'] ?? 'Còn hàng';
+    XFile? image;
+
+    await showCupertinoModalPopup(
+      context: context,
+      useRootNavigator: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Material(
+          color: Colors.transparent,
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.9,
+            padding: const EdgeInsets.all(25),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black.withAlpha(12), borderRadius: BorderRadius.circular(10))),
+                  const SizedBox(height: 25),
+                  Text("SỬA MÓN", style: AppStyle.heading),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: () async {
+                      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+                      if (pickedFile != null) setModalState(() => image = pickedFile);
+                    },
+                    child: Container(
+                      width: 120, height: 120,
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(color: AppColors.primary.withAlpha(25)),
+                      ),
+                      child: image == null
+                          ? (product['imagePath'] != null && product['imagePath'].isNotEmpty
+                              ? ClipRRect(borderRadius: BorderRadius.circular(25), child: Image.file(File(product['imagePath']), fit: BoxFit.cover))
+                              : const Icon(CupertinoIcons.camera_fill, color: AppColors.primary, size: 40))
+                          : ClipRRect(borderRadius: BorderRadius.circular(25), child: Image.file(File(image!.path), fit: BoxFit.cover)),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInput(label: 'TÊN MÓN ĂN', hint: 'Tên món', onChanged: (v) => name = v),
+                  const SizedBox(height: 12),
+                  _buildInput(label: 'GIÁ TIỀN (VNĐ)', hint: 'Giá', keyboardType: TextInputType.number, onChanged: (v) => price = v),
+                  const SizedBox(height: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("DANH MỤC", style: AppStyle.subHeading),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        decoration: AppStyle.cardDecoration.copyWith(color: AppColors.background.withAlpha(128)),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: category,
+                            isExpanded: true,
+                            items: categories.map((String value) {
+                              return DropdownMenuItem<String>(value: value, child: Text(value));
+                            }).toList(),
+                            onChanged: (v) => setModalState(() => category = v!),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("TRẠNG THÁI", style: AppStyle.subHeading),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: const Text('Còn hàng'),
+                              value: 'Còn hàng',
+                              groupValue: status,
+                              onChanged: (v) => setModalState(() => status = v!),
+                            ),
+                          ),
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: const Text('Hết hàng'),
+                              value: 'Hết hàng',
+                              groupValue: status,
+                              onChanged: (v) => setModalState(() => status = v!),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildInput(label: 'MÔ TẢ', hint: 'Mô tả', maxLines: 2, onChanged: (v) => description = v),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: const Text('CẬP NHẬT', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () async {
+                        Map<String, dynamic> data = {
+                          'name': name,
+                          'price': double.tryParse(price) ?? 0.0,
+                          'description': description,
+                          'category': category,
+                          'status': status,
+                        };
+                        if (image != null) data['imagePath'] = image!.path;
+                        await CafeDBHelper.updateProduct(product['id'], data);
+                        Navigator.pop(context);
+                        _load();
+                      },
+                    ),
+                  ),
+                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy bỏ', style: TextStyle(color: AppColors.danger))),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -293,7 +433,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     padding: const EdgeInsets.all(24),
                     itemCount: filteredProducts.length,
                     itemBuilder: (context, i) {
-                      var p = filteredProducts[i];
+                      final p = filteredProducts[i];
                       return Container(
                         margin: const EdgeInsets.only(bottom: 20),
                         padding: const EdgeInsets.all(16),
@@ -308,23 +448,28 @@ class _ProductScreenState extends State<ProductScreen> {
                         ),
                         child: Row(
                           children: [
+                            // Image
                             Container(
-                              width: 90, height: 90,
+                              width: 90,
+                              height: 90,
                               decoration: BoxDecoration(
                                 color: AppColors.background,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: AppColors.textPrimary, width: 2),
                               ),
-                              child: p['imagePath'] != null && p['imagePath'].isNotEmpty
-                                  ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(p['imagePath']), fit: BoxFit.cover))
+                              child: (p['imagePath'] != null && p['imagePath'].toString().isNotEmpty)
+                                  ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(File(p['imagePath'].toString()), fit: BoxFit.cover))
                                   : const Icon(Icons.fastfood_rounded, color: AppColors.textPrimary, size: 32),
                             ),
+
                             const SizedBox(width: 20),
+
+                            // Info
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(p['name'].toUpperCase(), style: AppStyle.heading.copyWith(fontSize: 18)),
+                                  Text(p['name'].toString().toUpperCase(), style: AppStyle.heading.copyWith(fontSize: 18)),
                                   const SizedBox(height: 2),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -334,24 +479,56 @@ class _ProductScreenState extends State<ProductScreen> {
                                       border: Border.all(color: AppColors.textPrimary, width: 1),
                                     ),
                                     child: Text(
-                                      p['category'] ?? "Khác", 
-                                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 8, fontWeight: FontWeight.w900)
+                                      p['category']?.toString() ?? 'Khác',
+                                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 8, fontWeight: FontWeight.w900),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(
-                                    "${NumberFormat("#,###").format(p['price'])}đ", 
-                                    style: AppStyle.heading.copyWith(color: AppColors.primary, fontSize: 18)
+                                  // Status badge
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: (p['status']?.toString() ?? 'Còn hàng') == 'Còn hàng' ? Colors.green.withAlpha(30) : Colors.red.withAlpha(30),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: AppColors.textPrimary.withAlpha(30)),
+                                        ),
+                                        child: Text(
+                                          (p['status']?.toString() ?? 'Còn hàng'),
+                                          style: TextStyle(
+                                            color: (p['status']?.toString() ?? 'Còn hàng') == 'Còn hàng' ? Colors.green[800] : Colors.red[800],
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        "${NumberFormat('#,###').format(p['price'])}đ",
+                                        style: AppStyle.heading.copyWith(color: AppColors.primary, fontSize: 18),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 24),
-                              onPressed: () async {
-                                await CafeDBHelper.deleteProduct(p['id']);
-                                _load();
-                              },
+
+                            // Actions
+                            Column(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: AppColors.primary, size: 22),
+                                  onPressed: () async => await _showEditProductSheet(p),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 24),
+                                  onPressed: () async {
+                                    await CafeDBHelper.deleteProduct(p['id']);
+                                    _load();
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -364,3 +541,4 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 }
+

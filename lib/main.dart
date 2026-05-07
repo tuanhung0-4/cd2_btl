@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io';
+// Conditional import: use dart:io only on IO-capable platforms (not web)
+import 'src/platform_stub.dart'
+    if (dart.library.io) 'src/platform_io.dart';
 import 'screens/welcome_screen.dart';
 import 'utils/app_style.dart';
 
@@ -17,8 +19,10 @@ void main() async {
   // Khởi tạo database cho các nền tảng đặc thù (Web tĩnh, Windows, Linux)
   // Vì SQLite mặc định trên điện thoại chạy trực tiếp, còn máy tính cần thư viện ffi
   if (kIsWeb) {
+    // On web, use the ffi factory (in this project we assume an indexed_db shim)
     databaseFactory = databaseFactoryFfi;
-  } else if (Platform.isWindows || Platform.isLinux) {
+  } else if (isWindows || isLinux) {
+    // On desktop platforms initialize ffi
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
@@ -74,4 +78,4 @@ class MyApp extends StatelessWidget {
       },
     );
   }
-}
+}
